@@ -2,8 +2,7 @@ import ast
 import json
 import requests
 from lxml import etree
-from pypomes_core.json_pomes import jsonify_dict
-from pypomes_core.xml_pomes import xml_to_dict
+from pypomes_core import json_normalize_dict, xml_to_dict
 from zeep import Client
 
 
@@ -80,7 +79,7 @@ def soap_post_zeep(zeep_service: callable, payload: dict, file_path: str = None)
 
     # converte o conteúdo retornado em dict e o prepara para descarga em JSON
     result: dict = ast.literal_eval(str(response))
-    jsonify_dict(result)
+    json_normalize_dict(result)
 
     # salva o retorno em arquivo ?
     if file_path is not None:
@@ -94,6 +93,7 @@ def soap_post_zeep(zeep_service: callable, payload: dict, file_path: str = None)
 def soap_get_dict(soap_response: bytes, xml_path: str = None, json_path: str = None) -> dict:
     """
     Recupera o objeto *dict* contendo os dados retornados pela solicitação SOAP.
+
     Esse objeto é retornado em condições de ser descarregado em formato JSON.
 
     :param soap_response: o conteúdo retornado pela solicitação SOAP
@@ -114,7 +114,7 @@ def soap_get_dict(soap_response: bytes, xml_path: str = None, json_path: str = N
 
     # converte o conteúdo XML em dict e o prepara para descarga em JSON
     result: dict = xml_to_dict(content)
-    jsonify_dict(result)
+    json_normalize_dict(result)
 
     # salva o retorno em arquivo ?
     if json_path is not None:
@@ -159,8 +159,9 @@ def soap_get_cids(soap_response: bytes) -> list[bytes]:
 
 def soap_get_attachment(soap_response: bytes, cid: bytes, file_path: str = None) -> bytes:
     """
-    Obtem e retorna o anexo contido no *response* da solicitação *SOAP*, no padrão *MTOM*
-    (*Message Transmission Optimization Mechanism*), e identificado pelo *cid* (Content-ID).
+    Obtem e retorna o anexo contido no *response* da solicitação *SOAP*, no padrão *MTOM*.
+
+    Nesse padrão (*Message Transmission Optimization Mechanism*), o anexo é identificado pelo *cid* (Content-ID).
 
     :param soap_response: o conteúdo retornado pela solicitação SOAP
     :param cid: a identificação do anexo
