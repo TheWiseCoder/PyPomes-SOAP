@@ -2,11 +2,12 @@ import ast
 import json
 import requests
 from lxml import etree
-from pypomes_core import json_normalize_dict, xml_to_dict
+from pathlib import Path
+from pypomes_core import HTTP_GET_TIMEOUT, json_normalize_dict, xml_to_dict
 from zeep import Client
 
 
-def soap_build_envelope(zeep_client: Client, service: str, payload: dict, file_path: str = None) -> bytes:
+def soap_build_envelope(zeep_client: Client, service: str, payload: dict, file_path: Path = None) -> bytes:
     """
     Constrói e retorna o envelope SOAP para um dado serviço. Esse envelope não contem os *headers*.
 
@@ -24,13 +25,14 @@ def soap_build_envelope(zeep_client: Client, service: str, payload: dict, file_p
     # salva o envelope em arquivo ?
     if file_path is not None:
         # sim
-        with open(file_path, "wb") as f:
+        with Path.open(file_path, "wb") as f:
             f.write(result)
 
     return result
 
 
-def soap_post(ws_url: str, soap_envelope: bytes, extra_headers: dict = None, file_path: str = None) -> bytes:
+def soap_post(ws_url: str, soap_envelope: bytes, extra_headers: dict = None,
+              file_path: Path = None, timeout: int = HTTP_GET_TIMEOUT) -> bytes:
     """
     Encaminha a solicitação SOAP, e retorna a resposta recebida.
 
@@ -38,6 +40,7 @@ def soap_post(ws_url: str, soap_envelope: bytes, extra_headers: dict = None, fil
     :param soap_envelope: o envelope SOAP
     :param extra_headers: cabeçalho adicional
     :param file_path: Path to store the response to the request.
+    :param timeout: timeout, in seconds (defaults to HTTP_GET_TIMEOUT - use None to omit)
     :return: a resposta à solicitação
     """
     # constrói o cabeçalho do envelope SOAP
@@ -52,19 +55,20 @@ def soap_post(ws_url: str, soap_envelope: bytes, extra_headers: dict = None, fil
     # envia o request
     response: requests.Response = requests.post(url=ws_url,
                                                 data=soap_envelope,
-                                                headers=headers)
+                                                headers=headers,
+                                                timeout=timeout)
     result: bytes = response.content
 
     # salva o response em arquivo ?
     if file_path is not None:
         # sim
-        with open(file_path, "wb") as f:
+        with Path.open(file_path, "wb") as f:
             f.write(result)
 
     return result
 
 
-def soap_post_zeep(zeep_service: callable, payload: dict, file_path: str = None) -> dict:
+def soap_post_zeep(zeep_service: callable, payload: dict, file_path: Path = None) -> dict:
     """
     Encaminha a solicitação SOAP utilizando o pacote *zeep*, e retorna a resposta recebida.
 
@@ -84,13 +88,13 @@ def soap_post_zeep(zeep_service: callable, payload: dict, file_path: str = None)
     # salva o retorno em arquivo ?
     if file_path is not None:
         # sim
-        with open(file_path, "w") as f:
+        with Path.open(file_path, "w") as f:
             f.write(json.dumps(result, ensure_ascii=False))
 
     return result
 
 
-def soap_get_dict(soap_response: bytes, xml_path: str = None, json_path: str = None) -> dict:
+def soap_get_dict(soap_response: bytes, xml_path: Path = None, json_path: Path = None) -> dict:
     """
     Recupera o objeto *dict* contendo os dados retornados pela solicitação SOAP.
 
@@ -109,7 +113,7 @@ def soap_get_dict(soap_response: bytes, xml_path: str = None, json_path: str = N
     # salva o conteúdo XML retornado em arquivo ?
     if xml_path is not None:
         # sim
-        with open(xml_path, "wb") as f:
+        with Path.open(xml_path, "wb") as f:
             f.write(content)
 
     # converte o conteúdo XML em dict e o prepara para descarga em JSON
@@ -119,7 +123,7 @@ def soap_get_dict(soap_response: bytes, xml_path: str = None, json_path: str = N
     # salva o retorno em arquivo ?
     if json_path is not None:
         # sim
-        with open(json_path, "w") as f:
+        with Path.open(json_path, "w") as f:
             f.write(json.dumps(result, ensure_ascii=False))
 
     return result
@@ -157,7 +161,7 @@ def soap_get_cids(soap_response: bytes) -> list[bytes]:
     return result
 
 
-def soap_get_attachment(soap_response: bytes, cid: bytes, file_path: str = None) -> bytes:
+def soap_get_attachment(soap_response: bytes, cid: bytes, file_path: Path = None) -> bytes:
     """
     Obtem e retorna o anexo contido no *response* da solicitação *SOAP*, no padrão *MTOM*.
 
@@ -198,7 +202,7 @@ def soap_get_attachment(soap_response: bytes, cid: bytes, file_path: str = None)
         # salva o attachment em arquivo ?
         if file_path is not None:
             # sim
-            with open(file_path, "wb") as f:
+            with Path.open(file_path, "wb") as f:
                 f.write(result)
 
     return result
