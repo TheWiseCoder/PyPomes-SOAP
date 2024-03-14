@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pypomes_soap"
-version = "0.1.4"
+version = "0.1.6"
 authors = [
   { name="GT Nunes", email="wisecoder01@gmail.com" }
 ]
@@ -20,11 +20,12 @@ classifiers = [
 ]
 dependencies = [
     "lxml>=4.9.3",
-    "pip>=23.2.1",
-    "pypomes_core>=0.2.3",
+    "pip>=24.0",
+    "pypomes_core>=0.6.8",
+    "pypomes_http>=0.0.6",
     "requests>=2.31.0",
     "setuptools>=68.0.0",
-    "wheel>=0.41.0",
+    "wheel>=0.42.0",
     "zeep>=4.2.1"
 ]
 

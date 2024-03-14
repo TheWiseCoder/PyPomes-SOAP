@@ -3,27 +3,30 @@ import json
 import requests
 from lxml import etree
 from pathlib import Path
-from pypomes_core import HTTP_GET_TIMEOUT, json_normalize_dict, xml_to_dict
+from pypomes_core import json_normalize_dict, xml_to_dict
+from pypomes_http import HTTP_POST_TIMEOUT
 from zeep import Client
 
 
-def soap_build_envelope(zeep_client: Client, service: str, payload: dict, file_path: Path = None) -> bytes:
+def soap_build_envelope(ws_url: str, service: str, payload: dict, file_path: Path = None) -> bytes:
     """
     Constrói e retorna o envelope SOAP para um dado serviço. Esse envelope não contem os *headers*.
 
-    :param zeep_client: o cliente zeep
+    :param ws_url: a URL da solicitação
     :param payload: os dados a serem enviados
     :param service: o nome do serviço
     :param file_path: Path to store the soap envelope.
     :return: o envelope para a requisição SOAP, sem os headers
     """
+    # obtem o cliente
+    zeep_client: Client = Client(wsdl=ws_url)
     # obtem o envelope XML
     root = zeep_client.create_message(zeep_client.service, service, **payload)
     result: bytes = etree.tostring(element_or_tree=root,
                                    pretty_print=True)
 
     # salva o envelope em arquivo ?
-    if file_path is not None:
+    if file_path:
         # sim
         with Path.open(file_path, "wb") as f:
             f.write(result)
@@ -32,7 +35,7 @@ def soap_build_envelope(zeep_client: Client, service: str, payload: dict, file_p
 
 
 def soap_post(ws_url: str, soap_envelope: bytes, extra_headers: dict = None,
-              file_path: Path = None, timeout: int = HTTP_GET_TIMEOUT) -> bytes:
+              file_path: Path = None, timeout: int = HTTP_POST_TIMEOUT) -> bytes:
     """
     Encaminha a solicitação SOAP, e retorna a resposta recebida.
 
@@ -40,7 +43,7 @@ def soap_post(ws_url: str, soap_envelope: bytes, extra_headers: dict = None,
     :param soap_envelope: o envelope SOAP
     :param extra_headers: cabeçalho adicional
     :param file_path: Path to store the response to the request.
-    :param timeout: timeout, in seconds (defaults to HTTP_GET_TIMEOUT - use None to omit)
+    :param timeout: timeout, in seconds (defaults to HTTP_POST_TIMEOUT - use None to omit)
     :return: a resposta à solicitação
     """
     # constrói o cabeçalho do envelope SOAP
@@ -48,7 +51,7 @@ def soap_post(ws_url: str, soap_envelope: bytes, extra_headers: dict = None,
                      "content-type": "application/soap+xml; charset=utf-8"}
 
     # um cabeçalho adicional foi definido ?
-    if extra_headers is not None:
+    if extra_headers:
         # sim, contabilize-o
         headers.update(extra_headers)
 
@@ -60,7 +63,7 @@ def soap_post(ws_url: str, soap_envelope: bytes, extra_headers: dict = None,
     result: bytes = response.content
 
     # salva o response em arquivo ?
-    if file_path is not None:
+    if file_path:
         # sim
         with Path.open(file_path, "wb") as f:
             f.write(result)
@@ -86,7 +89,7 @@ def soap_post_zeep(zeep_service: callable, payload: dict, file_path: Path = None
     json_normalize_dict(result)
 
     # salva o retorno em arquivo ?
-    if file_path is not None:
+    if file_path:
         # sim
         with Path.open(file_path, "w") as f:
             f.write(json.dumps(result, ensure_ascii=False))
@@ -111,7 +114,7 @@ def soap_get_dict(soap_response: bytes, xml_path: Path = None, json_path: Path =
     content: bytes = soap_response[pos_1:pos_2]
 
     # salva o conteúdo XML retornado em arquivo ?
-    if xml_path is not None:
+    if xml_path:
         # sim
         with Path.open(xml_path, "wb") as f:
             f.write(content)
@@ -121,7 +124,7 @@ def soap_get_dict(soap_response: bytes, xml_path: Path = None, json_path: Path =
     json_normalize_dict(result)
 
     # salva o retorno em arquivo ?
-    if json_path is not None:
+    if json_path:
         # sim
         with Path.open(json_path, "w") as f:
             f.write(json.dumps(result, ensure_ascii=False))
@@ -200,7 +203,7 @@ def soap_get_attachment(soap_response: bytes, cid: bytes, file_path: Path = None
         result: bytes = soap_response[pos_1:pos_2]
 
         # salva o attachment em arquivo ?
-        if file_path is not None:
+        if file_path:
             # sim
             with Path.open(file_path, "wb") as f:
                 f.write(result)
