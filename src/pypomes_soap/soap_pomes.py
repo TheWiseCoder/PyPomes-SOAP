@@ -3,7 +3,7 @@ import json
 import requests
 from lxml import etree
 from pathlib import Path
-from pypomes_core import json_normalize_dict, xml_to_dict
+from pypomes_core import dict_jsonify, xml_to_dict
 from pypomes_http import HTTP_POST_TIMEOUT
 from zeep import Client
 
@@ -26,14 +26,16 @@ def soap_build_envelope(ws_url: str,
     # obtain the client
     zeep_client: Client = Client(wsdl=ws_url)
     # obtain the XML envelope
-    root = zeep_client.create_message(zeep_client.service, service, **payload)
+    root = zeep_client.create_message(service=zeep_client.service,
+                                      operation_name=service,
+                                      **payload)
     result: bytes = etree.tostring(element_or_tree=root,
                                    pretty_print=True)
 
     # save the envelope to file ?
     if filepath:
         # yes
-        with filepath.open("wb") as f:
+        with filepath.open(mode="wb") as f:
             f.write(result)
 
     return result
@@ -73,7 +75,7 @@ def soap_post(ws_url: str,
     # save the response to file ?
     if filepath:
         # yes
-        with filepath.open("wb") as f:
+        with filepath.open(mode="wb") as f:
             f.write(result)
 
     return result
@@ -96,13 +98,14 @@ def soap_post_zeep(zeep_service: callable,
 
     # convert the returned content to 'dict' and prepare it for dumping in JSON
     result: dict = ast.literal_eval(str(response))
-    json_normalize_dict(result)
+    dict_jsonify(source=result)
 
     # save the response to file ?
     if filepath:
         # yes
-        with filepath.open("w") as f:
-            f.write(json.dumps(result, ensure_ascii=False))
+        with filepath.open(mode="w") as f:
+            f.write(json.dumps(obj=result,
+                               ensure_ascii=False))
 
     return result
 
@@ -128,18 +131,19 @@ def soap_get_dict(soap_response: bytes,
     # save the returned XML content to file ?
     if xml_path:
         # yes
-        with xml_path.open("wb") as f:
+        with xml_path.open(mode="wb") as f:
             f.write(content)
 
     # convert the returned XML content to 'dict' and prepare it for dumping in JSON
-    result: dict = xml_to_dict(content)
-    json_normalize_dict(result)
+    result: dict = xml_to_dict(file_data=content)
+    dict_jsonify(source=result)
 
     # save the response to file ?
     if json_path:
         # yes
-        with json_path.open("w") as f:
-            f.write(json.dumps(result, ensure_ascii=False))
+        with json_path.open(mode="w") as f:
+            f.write(json.dumps(obj=result,
+                               ensure_ascii=False))
 
     return result
 

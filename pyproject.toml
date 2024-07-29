@@ -6,11 +6,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pypomes_soap"
-version = "0.1.8"
+version = "0.1.9"
 authors = [
   { name="GT Nunes", email="wisecoder01@gmail.com" }
 ]
-description = "A collection of Python pomes, pennyeach (SOAP module)"
+description = "A collection of Python pomes, penyeach (SOAP module)"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
@@ -21,9 +21,8 @@ classifiers = [
 dependencies = [
     "lxml>=4.9.3",
     "pip>=24.0",
-    "pypomes_core>=1.0.7",
-    "pypomes_http>=0.1.8",
-    "pypomes_security>=0.1.4",
+    "pypomes_core>=1.4.5",
+    "pypomes_http>=0.2.4",
     "requests>=2.31.0",
     "setuptools>=68.0.0",
     "wheel>=0.42.0",
