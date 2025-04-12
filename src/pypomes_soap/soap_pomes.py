@@ -4,7 +4,6 @@ import requests
 from lxml import etree
 from pathlib import Path
 from pypomes_core import dict_jsonify, xml_to_dict
-from pypomes_http import HTTP_POST_TIMEOUT
 from zeep import Client
 
 
@@ -45,7 +44,7 @@ def soap_post(ws_url: str,
               soap_envelope: bytes,
               extra_headers: dict = None,
               filepath: Path = None,
-              timeout: int | None = HTTP_POST_TIMEOUT) -> bytes:
+              timeout: int = None) -> bytes:
     """
     Forward the SOAP request, and return the received response.
 
