@@ -165,7 +165,7 @@ def soap_get_cids(soap_response: bytes) -> list[bytes]:
     :param soap_response: the content returned by the SOAP request
     :return: the list of 'content ids' found, which may be empty
     """
-    # inicializa a variável de retorno
+    # initialize the return variable
     result: list[bytes] = []
 
     prefix: bytes = b'href="cid:'
@@ -183,7 +183,7 @@ def soap_get_attachment(soap_response: bytes,
                         cid: bytes,
                         filepath: Path = None) -> bytes:
     """
-    Retrieve and return the attachment contained in the *response* to the *SOAP* request, in the *MTOM* pattern.
+    Retrieve the attachment contained in the *response* to the *SOAP* request, in the *MTOM* pattern.
 
     In this standard (*Message Transmission Optimization Mechanism*), the attachment is identified
     by its *cid* (*Content-ID*).
