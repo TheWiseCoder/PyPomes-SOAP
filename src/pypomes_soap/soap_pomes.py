@@ -1,9 +1,11 @@
 import ast
 import json
 import requests
+from collections.abc import Callable
 from lxml import etree
 from pathlib import Path
 from pypomes_core import dict_jsonify, xml_to_dict
+from typing import Any
 from zeep import Client
 
 
@@ -28,6 +30,7 @@ def soap_build_envelope(ws_url: str,
     root = zeep_client.create_message(service=zeep_client.service,
                                       operation_name=service,
                                       **payload)
+    # noinspection PyTypeChecker
     result: bytes = etree.tostring(element_or_tree=root,
                                    pretty_print=True)
 
@@ -80,7 +83,7 @@ def soap_post(ws_url: str,
     return result
 
 
-def soap_post_zeep(zeep_service: callable,
+def soap_post_zeep(zeep_service: Callable,
                    payload: dict,
                    filepath: Path = None) -> dict:
     """
@@ -93,7 +96,7 @@ def soap_post_zeep(zeep_service: callable,
     """
     # invoke the service
     # ('response' is a dict subclass - defined in the wsdl as the return to 'zeep_service')
-    response: any = zeep_service(**payload)
+    response: Any = zeep_service(**payload)
 
     # convert the returned content to 'dict' and prepare it for dumping in JSON
     result: dict = ast.literal_eval(str(response))
