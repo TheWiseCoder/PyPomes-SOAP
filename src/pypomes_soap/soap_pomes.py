@@ -33,10 +33,8 @@ def soap_build_envelope(ws_url: str,
     # noinspection PyTypeChecker
     result: bytes = etree.tostring(element_or_tree=root,
                                    pretty_print=True)
-
-    # save the envelope to file ?
     if filepath:
-        # yes
+        # save the envelope to file
         with filepath.open(mode="wb") as f:
             f.write(result)
 
@@ -61,10 +59,8 @@ def soap_post(ws_url: str,
     # constrói o cabeçalho do envelope SOAP
     headers: dict = {"SOAPAction": '""',
                      "content-type": "application/soap+xml; charset=utf-8"}
-
-    # has additional headers been defined ?
     if extra_headers:
-        # yes, acknowledge them
+        # acknowledge the additional headers
         headers.update(extra_headers)
 
     # send the request
@@ -74,9 +70,8 @@ def soap_post(ws_url: str,
                                                 timeout=timeout)
     result: bytes = response.content
 
-    # save the response to file ?
     if filepath:
-        # yes
+        # save the response to file
         with filepath.open(mode="wb") as f:
             f.write(result)
 
@@ -102,9 +97,8 @@ def soap_post_zeep(zeep_service: Callable,
     result: dict = ast.literal_eval(str(response))
     dict_jsonify(source=result)
 
-    # save the response to file ?
     if filepath:
-        # yes
+        # save the response to file
         with filepath.open(mode="w") as f:
             f.write(json.dumps(obj=result,
                                ensure_ascii=False))
@@ -130,9 +124,8 @@ def soap_get_dict(soap_response: bytes,
     pos_2: int = soap_response.find(b"</soap:Body>", pos_1)
     content: bytes = soap_response[pos_1:pos_2]
 
-    # save the returned XML content to file ?
     if xml_path:
-        # yes
+        # save the returned XML content to file
         with xml_path.open(mode="wb") as f:
             f.write(content)
 
@@ -140,9 +133,8 @@ def soap_get_dict(soap_response: bytes,
     result: dict = xml_to_dict(file_data=content)
     dict_jsonify(source=result)
 
-    # save the response to file ?
     if json_path:
-        # yes
+        # save the response to file
         with json_path.open(mode="w") as f:
             f.write(json.dumps(obj=result,
                                ensure_ascii=False))
@@ -203,9 +195,7 @@ def soap_get_attachment(soap_response: bytes,
     mark: bytes = b"Content-ID: <" + cid + b">"
     pos_1 = soap_response.find(mark)
 
-    # was the start of the attachment located ?
     if pos_1 > 0:
-        # yes, proceed
         pos_1 += len(mark)
         # skip control chars (CR, LF, and others)
         blank: int = b" "[0]
@@ -223,9 +213,8 @@ def soap_get_attachment(soap_response: bytes,
         # retrieve the attachment
         result: bytes = soap_response[pos_1:pos_2]
 
-        # save the attachment to file ?
         if filepath:
-            # yes
+            # save the attachment to file
             with filepath.open("wb") as f:
                 f.write(result)
 
